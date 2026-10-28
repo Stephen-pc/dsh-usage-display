@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# 本地测试产物
+.tmp-test/
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# 真实凭据，别提交
+secrets.h
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store

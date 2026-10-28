@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsh-usage"
+version = "0.1.0"
+description = "把 DeepSeek Harness 的用量数据变成任何设备都能读的一份 JSON"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Stephen-pc" }]
+keywords = ["deepseek", "dsh", "usage", "esp32", "dashboard"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.optional-dependencies]
+zstd = ["zstandard>=0.22"]
+
+[project.scripts]
+dsh-usage = "dsh_usage.__main__:main"
+
+[tool.setuptools]
+packages = ["dsh_usage"]
+
+[tool.setuptools.package-data]
+dsh_usage = ["web/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

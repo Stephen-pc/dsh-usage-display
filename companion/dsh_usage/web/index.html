@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<title>dsh 用量</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --line: #21262d;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --accent: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px 16px 40px;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.6 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 4px rgba(63,185,80,.15);
+    transition: background .3s, box-shadow .3s;
+  }
+  h1 { font-size: 15px; font-weight: 500; margin: 0; letter-spacing: .2px; }
+  .stamp { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .hero {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 20px 18px;
+    margin-bottom: 12px;
+  }
+  .hero .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .hero .value {
+    font-size: 52px; font-weight: 500; line-height: 1.05;
+    font-variant-numeric: tabular-nums; letter-spacing: -1.5px;
+  }
+  .hero .value small { font-size: 22px; color: var(--muted); margin-left: 2px; letter-spacing: 0; }
+  .hero .sub { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .bar {
+    height: 6px; border-radius: 3px; background: #21262d;
+    margin-top: 14px; overflow: hidden; display: flex;
+  }
+  .bar i { display: block; height: 100%; }
+  .bar .hit { background: var(--ok); }
+  .bar .miss { background: var(--warn); }
+  .bar .out { background: var(--accent); }
+  .legend { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .legend span::before {
+    content: ""; display: inline-block; width: 7px; height: 7px;
+    border-radius: 2px; margin-right: 5px; vertical-align: 1px;
+  }
+  .legend .l-hit::before { background: var(--ok); }
+  .legend .l-miss::before { background: var(--warn); }
+  .legend .l-out::before { background: var(--accent); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .card .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .card .value { font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .card .value small { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .card .note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .spark { margin-top: 6px; }
+  .spark svg { display: block; width: 100%; height: 44px; }
+
+  .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row span:first-child { color: var(--muted); }
+  .row span:last-child { font-variant-numeric: tabular-nums; }
+
+  .section-title { font-size: 12px; color: var(--muted); margin: 18px 0 8px; }
+
+  .auth {
+    display: none;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  }
+  .auth input {
+    width: 100%; padding: 9px 11px; border-radius: 8px;
+    border: 1px solid var(--line); background: #0d1117; color: var(--text);
+    font-size: 13px; margin-bottom: 8px;
+  }
+  .auth button {
+    padding: 8px 16px; border-radius: 8px; border: 0;
+    background: var(--accent); color: #04121f; font-weight: 500; font-size: 13px;
+    cursor: pointer;
+  }
+  .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 26px 0; }
+  @media (max-width: 420px) {
+    .hero .value { font-size: 42px; }
+    .grid { gap: 10px; }
+    .card .value { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="dot" id="dot"></div>
+    <h1>dsh 用量</h1>
+    <div class="stamp" id="stamp">连接中…</div>
+  </header>
+
+  <div class="auth" id="auth">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">这个服务开了 Bearer 鉴权，填入 token</div>
+    <input id="tokenInput" type="password" placeholder="token" autocomplete="off">
+    <button id="tokenSave">保存</button>
+  </div>
+
+  <div class="hero">
+    <div class="label">今日缓存命中率</div>
+    <div class="value" id="hit">--<small>%</small></div>
+    <div class="sub" id="hitSub">等数据</div>
+    <div class="bar">
+      <i class="hit" id="barHit" style="width:0"></i>
+      <i class="miss" id="barMiss" style="width:0"></i>
+      <i class="out" id="barOut" style="width:0"></i>
+    </div>
+    <div class="legend">
+      <span class="l-hit" id="lgHit">命中</span>
+      <span class="l-miss" id="lgMiss">未命中</span>
+      <span class="l-out" id="lgOut">输出</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">今日花费</div>
+      <div class="value" id="cost">¥--</div>
+      <div class="note" id="cost7d">近 7 天 ¥--</div>
+    </div>
+    <div class="card">
+      <div class="label">账户余额</div>
+      <div class="value" id="balance">¥--</div>
+      <div class="note" id="balanceNote">未配置 API Key</div>
+    </div>
+    <div class="card">
+      <div class="label">今日调用</div>
+      <div class="value" id="calls">--<small>次</small></div>
+      <div class="note" id="success">成功率 --</div>
+    </div>
+    <div class="card">
+      <div class="label">最近一次</div>
+      <div class="value" id="lastHit">--<small>%</small></div>
+      <div class="note" id="lastNote">--</div>
+    </div>
+  </div>
+
+  <div class="card spark">
+    <div class="label">最近 32 次命中率</div>
+    <svg id="sparkSvg" viewBox="0 0 600 44" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="section-title">明细</div>
+  <div class="card">
+    <div class="row"><span>今日输入 token</span><span id="inTok">--</span></div>
+    <div class="row"><span>今日输出 token</span><span id="outTok">--</span></div>
+    <div class="row"><span>最近模型</span><span id="model">--</span></div>
+    <div class="row"><span>最近延迟 / 首字</span><span id="latency">--</span></div>
+    <div class="row"><span>数据源</span><span id="source">--</span></div>
+    <div class="row"><span>数据新鲜度</span><span id="stale">--</span></div>
+  </div>
+  <div class="empty" id="empty" style="display:none">
+    还没有数据。跑一轮 dsh，或者执行 <code>dsh-usage mock</code> 先看看效果。
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+let token = params.get('token') || localStorage.getItem('dshToken') || '';
+const $ = id => document.getElementById(id);
+
+function permille(value) { return (value / 10).toFixed(1); }
+function yuan(micros) { return (micros / 1e6).toFixed(2); }
+function tokens(count) {
+  if (count >= 1e6) return (count / 1e6).toFixed(2) + 'M';
+  if (count >= 1e3) return (count / 1e3).toFixed(1) + 'k';
+  return String(count);
+}
+function levelColor(level) {
+  return level >= 2 ? 'var(--bad)' : level === 1 ? 'var(--warn)' : 'var(--ok)';
+}
+
+function drawSpark(values) {
+  const svg = $('sparkSvg');
+  const w = 600, h = 44;
+  if (!values || values.length < 2) { svg.innerHTML = ''; return; }
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = Math.max(1, max - min);
+  const step = w / (values.length - 1);
+  const points = values.map((v, i) => {
+    const x = i * step;
+    const y = h - 4 - ((v - min) / span) * (h - 8);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const color = values[values.length - 1] >= 950 ? 'var(--ok)'
+    : values[values.length - 1] >= 800 ? 'var(--warn)' : 'var(--bad)';
+  svg.innerHTML = `
+    <polyline points="${points.join(' ')}" fill="none" stroke="${color}"
+      stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="${(values.length - 1) * step}" cy="${points[points.length - 1].split(',')[1]}"
+      r="2.6" fill="${color}"/>`;
+}
+
+function render(d) {
+  const hasData = d.calls_today > 0 || d.last_at > 0;
+  $('empty').style.display = hasData ? 'none' : 'block';
+
+  $('hit').innerHTML = permille(d.cache_hit_permille) + '<small>%</small>';
+  $('hit').style.color = levelColor(d.level);
+  $('hitSub').textContent = `${tokens(d.cache_hit_today)} 命中 / ${tokens(d.cache_miss_today)} 未命中`;
+
+  const total = d.cache_hit_today + d.cache_miss_today + d.output_today;
+  if (total > 0) {
+    $('barHit').style.width = (d.cache_hit_today / total * 100) + '%';
+    $('barMiss').style.width = (d.cache_miss_today / total * 100) + '%';
+    $('barOut').style.width = (d.output_today / total * 100) + '%';
+  }
+  $('lgHit').textContent = `命中 ${tokens(d.cache_hit_today)}`;
+  $('lgMiss').textContent = `未命中 ${tokens(d.cache_miss_today)}`;
+  $('lgOut').textContent = `输出 ${tokens(d.output_today)}`;
+
+  $('cost').textContent = '¥' + yuan(d.cost_today_cny_micros);
+  $('cost7d').textContent = `近 7 天 ¥${yuan(d.cost_7d_cny_micros)} · ${d.calls_7d} 次`;
+  $('balance').textContent = d.balance_ok ? '¥' + yuan(d.balance_cny_micros) : '¥--';
+  $('balance').style.color = d.balance_ok && d.balance_cny_micros < 5e6 ? 'var(--bad)' : '';
+  $('balanceNote').textContent = d.balance_ok ? '实时余额' : '未配置 API Key 或取不到';
+
+  $('calls').innerHTML = d.calls_today + '<small>次</small>';
+  $('success').textContent = `成功率 ${permille(d.success_permille)}%` +
+    (d.errors_today ? ` · ${d.errors_today} 次失败` : '');
+
+  $('lastHit').innerHTML = permille(d.last_cache_hit_permille) + '<small>%</small>';
+  $('lastNote').textContent = d.last_ok ? '成功' : '失败';
+
+  $('inTok').textContent = tokens(d.input_today);
+  $('outTok').textContent = tokens(d.output_today);
+  $('model').textContent = d.last_model;
+  $('latency').textContent = d.last_latency_ms
+    ? `${d.last_latency_ms}ms / ${d.last_ttft_ms || '-'}ms` : '--';
+  $('source').textContent = d.source;
+  $('stale').textContent = d.stale_seconds < 60
+    ? `${d.stale_seconds} 秒前` : `${Math.round(d.stale_seconds / 60)} 分钟前`;
+
+  drawSpark(d.spark);
+
+  $('dot').style.background = levelColor(d.level);
+  $('dot').style.boxShadow = `0 0 0 4px ${d.level >= 2 ? 'rgba(248,81,73,.15)'
+    : d.level === 1 ? 'rgba(210,153,34,.15)' : 'rgba(63,185,80,.15)'}`;
+  $('stamp').textContent = '更新于 ' + new Date(d.generated_at * 1000).toLocaleTimeString('zh-CN');
+}
+
+async function tick() {
+  try {
+    const res = await fetch('/api/usage', {
+      headers: token ? { Authorization: 'Bearer ' + token } : {}
+    });
+    if (res.status === 401) {
+      $('auth').style.display = 'block';
+      $('stamp').textContent = '需要 token';
+      return;
+    }
+    if (!res.ok) throw new Error(res.status);
+    $('auth').style.display = 'none';
+    render(await res.json());
+  } catch (err) {
+    $('stamp').textContent = '连接断开，重试中';
+    $('dot').style.background = 'var(--bad)';
+  }
+}
+
+$('tokenSave').onclick = () => {
+  token = $('tokenInput').value.trim();
+  localStorage.setItem('dshToken', token);
+  tick();
+};
+
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>
